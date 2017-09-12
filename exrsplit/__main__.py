@@ -173,7 +173,7 @@ def list_exr(args):
 def main(args):
     if args.merge:
         merge_exr(args)
-    elif args.list is not None:
+    elif args.list:
         list_exr(args)
     else:
         split_exr(args)
