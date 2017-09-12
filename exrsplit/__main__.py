@@ -115,8 +115,9 @@ def split_exr(args):
         exr = _open_inputfile(inputfile)
         try:
             header = exr.header()
-            if args.layer:
-                channels = [exrsplit.EXRChannel(header, layer) for layer in header['channels'] if layer.startswith(tuple(args.layer))]
+            if args.layer is not None:
+                channels = [exrsplit.EXRChannel(header, layer) for layer in header['channels']
+                            if layer.startswith(tuple(args.layer))]
             else:
                 channels = [exrsplit.EXRChannel(header, layer) for layer in header['channels']]
             if args.split_channels:
@@ -153,14 +154,18 @@ def list_exr(args):
         exr = _open_inputfile(inputfile)
         try:
             header = exr.header()
-            if args.layer:
-                channels = [exrsplit.EXRChannel(header, layer) for layer in header['channels'] if layer.startswith(tuple(args.layer))]
+            if args.layer is not None:
+                channels = [exrsplit.EXRChannel(header, layer) for layer in header['channels']
+                            if layer.startswith(tuple(args.layer))]
             else:
                 channels = [exrsplit.EXRChannel(header, layer) for layer in header['channels']]
             grouped_channels = exrsplit.group_channels(channels)
             for layer_i, layer in enumerate(grouped_channels):
                 layer_channels = ",".join(sorted([str(x.channel) for x in layer]))
-                print('{}/{} - Layer: {}, Channels: ({})'.format(layer_i + 1, len(grouped_channels), layer[0].layer, layer_channels))
+                print('{}/{} - Layer: {}, Channels: ({})'.format(layer_i + 1,
+                                                                 len(grouped_channels),
+                                                                 layer[0].layer,
+                                                                 layer_channels))
         finally:
             exr.close()
 
@@ -168,7 +173,7 @@ def list_exr(args):
 def main(args):
     if args.merge:
         merge_exr(args)
-    elif args.list:
+    elif args.list is not None:
         list_exr(args)
     else:
         split_exr(args)
