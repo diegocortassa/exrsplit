@@ -13,6 +13,8 @@ def _parse_args():
     parser.add_argument('-s', '--split-channels', action='store_true', help='Create a file for each channel instead ' +
                         'of per layer. Data channels (eg. depth, shadows or mask) are saved as grayscale ' +
                         'representations of their data.')
+    parser.add_argument('--layer', action='append', help='Layer or Layer.channel to split OpenEXR in')
+    parser.add_argument('-l', '--list', action='store_true', help='List all layers in given OpenEXR image')
     parser.add_argument('--view', action='append',
                         help='Treat given prefix as a view instead of a layer. ' +
                         'First view is treated as the default view.')
@@ -113,7 +115,10 @@ def split_exr(args):
         exr = _open_inputfile(inputfile)
         try:
             header = exr.header()
-            channels = [exrsplit.EXRChannel(header, layer) for layer in header['channels']]
+            if args.layer:
+                channels = [exrsplit.EXRChannel(header, layer) for layer in header['channels'] if layer.startswith(tuple(args.layer))]
+            else:
+                channels = [exrsplit.EXRChannel(header, layer) for layer in header['channels']]
             if args.split_channels:
                 grouped_channels = [[x] for x in channels]
             else:
@@ -123,6 +128,7 @@ def split_exr(args):
                     target_file = '{}.{}.exr'.format(exrsplit.output_file_name(layer[0]), layer[0].channel)
                 else:
                     target_file = '{}.exr'.format(exrsplit.output_file_name(layer[0]))
+                target_file = '{}_{}'.format(os.path.basename(os.path.splitext(inputfile)[0]), target_file)
                 print('{}/{} - Saving {} channels to {}'.format(layer_i + 1, len(grouped_channels),
                                                                 len(layer), target_file))
                 out_header = _create_output_header(header)
@@ -142,9 +148,28 @@ def split_exr(args):
             exr.close()
 
 
+def list_exr(args):
+    for inputfile in args.image:
+        exr = _open_inputfile(inputfile)
+        try:
+            header = exr.header()
+            if args.layer:
+                channels = [exrsplit.EXRChannel(header, layer) for layer in header['channels'] if layer.startswith(tuple(args.layer))]
+            else:
+                channels = [exrsplit.EXRChannel(header, layer) for layer in header['channels']]
+            grouped_channels = exrsplit.group_channels(channels)
+            for layer_i, layer in enumerate(grouped_channels):
+                layer_channels = ",".join(sorted([str(x.channel) for x in layer]))
+                print('{}/{} - Layer: {}, Channels: ({})'.format(layer_i + 1, len(grouped_channels), layer[0].layer, layer_channels))
+        finally:
+            exr.close()
+
+
 def main(args):
     if args.merge:
         merge_exr(args)
+    elif args.list:
+        list_exr(args)
     else:
         split_exr(args)
 
