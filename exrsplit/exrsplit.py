@@ -108,8 +108,6 @@ class EXRChannel:
         self.fullname = fullname
         self.view = get_view(header, fullname)
         self.layer = _get_layer(self.view, fullname)
-        if not self.layer:
-            self.layer = "default"
         self.channel = fullname.rsplit('.', 1)[-1]
         self.channel_type = _get_channel_type(self.channel)
 

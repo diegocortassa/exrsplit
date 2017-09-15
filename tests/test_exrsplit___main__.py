@@ -37,13 +37,13 @@ def test_split_exr_layers(mock___open_inputfile, mock_OpenEXR_OutputFile):
 
     mock___open_inputfile.assert_called_once_with('test.exr')
     mock_OpenEXR_OutputFile.assert_has_calls([
-        call('car.exr', {
+        call('test_car.exr', {
             'channels': {'R': {}},
             'comments': b'Processed by exrsplit',
         }),
         call().writePixels(ANY),
         call().close(),
-        call('default_layer.exr', {
+        call('test_default_layer.exr', {
             'channels': {'R': {}, 'G': {}},
             'comments': b'Processed by exrsplit',
         }),
