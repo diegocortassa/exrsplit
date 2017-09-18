@@ -13,8 +13,9 @@ def _parse_args():
     parser.add_argument('-s', '--split-channels', action='store_true', help='Create a file for each channel instead ' +
                         'of per layer. Data channels (eg. depth, shadows or mask) are saved as grayscale ' +
                         'representations of their data.')
-    parser.add_argument('--layer', action='append', help='Layer or Layer.channel to split OpenEXR in')
-    parser.add_argument('-l', '--list', action='store_true', help='List all layers in given OpenEXR image')
+    parser.add_argument('-p', '--prefix', action='store_true', help='Prefix image filename to output filename')
+    parser.add_argument('--layer', action='append', help='Split only selected Layers')
+    parser.add_argument('-l', '--list', action='store_true', help='List layers from images')
     parser.add_argument('--view', action='append',
                         help='Treat given prefix as a view instead of a layer. ' +
                         'First view is treated as the default view.')
@@ -129,7 +130,8 @@ def split_exr(args):
                     target_file = '{}.{}.exr'.format(exrsplit.output_file_name(layer[0]), layer[0].channel)
                 else:
                     target_file = '{}.exr'.format(exrsplit.output_file_name(layer[0]))
-                target_file = '{}_{}'.format(os.path.basename(os.path.splitext(inputfile)[0]), target_file)
+                if args.prefix:
+                    target_file = '{}_{}'.format(os.path.basename(os.path.splitext(inputfile)[0]), target_file)
                 print('{}/{} - Saving {} channels to {}'.format(layer_i + 1, len(grouped_channels),
                                                                 len(layer), target_file))
                 out_header = _create_output_header(header)
@@ -171,12 +173,13 @@ def list_exr(args):
 
 
 def main(args):
-    if args.merge:
-        merge_exr(args)
-    elif args.list:
+    if args.list:
         list_exr(args)
+    elif args.merge:
+        merge_exr(args)
     else:
         split_exr(args)
+
 
 if __name__ == '__main__':
     main(_parse_args())
